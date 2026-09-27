@@ -1,4 +1,4 @@
-﻿# Kubernetes CI/CD & Argo CD Demo
+﻿# Kubernetes CI/CD & GitOps Deployment
 
 ![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
@@ -7,45 +7,54 @@
 ![ArgoCD](https://img.shields.io/badge/ArgoCD-GitOps-ef7b4d?style=for-the-badge)
 ![CICD](https://img.shields.io/badge/CI%2FCD-Automated-0a0a0a?style=for-the-badge)
 
-Application de démonstration DevOps pour illustrer un pipeline CI/CD complet avec Docker, Kubernetes et Argo CD, sur une architecture fonctionnelle composée d’un master et de deux workers.
+A production-oriented DevOps project demonstrating a complete CI/CD pipeline, containerization, and GitOps deployment on a Kubernetes cluster composed of one master node and two worker nodes.
 
-## Objectif du projet
+## Table of Contents
 
-Ce projet montre comment automatiser le cycle de vie d’une application web moderne :
+- [Français](#français)
+- [English](#english)
+
+---
+
+## Français
+
+### Objectif du projet
+
+Ce projet illustre le cycle de vie complet d’une application moderne dans un environnement Kubernetes réel :
 
 - développement du code,
-- validation avec CI,
+- validation automatisée via CI,
 - construction des images Docker,
-- publication dans un registre,
+- publication dans un registre d’images,
 - déploiement sur Kubernetes,
-- synchronisation dynamique via Argo CD,
-- gestion du cluster avec un nœud master et deux nœuds workers.
+- synchronisation dynamique avec Argo CD,
+- gestion du cluster avec `master`, `worker1` et `worker2`.
 
-## Architecture Kubernetes du cluster
+### Architecture du cluster Kubernetes
 
-Notre environnement fonctionnel est structuré comme suit :
+L’environnement fonctionnel est structuré comme suit :
 
 - 1 nœud `master`
 - 2 nœuds `worker1` et `worker2`
-- les workloads sont planifiés sur les workers,
-- le master gère l’orchestration et la gestion du cluster,
-- les services sont exposés au niveau du cluster ou via NodePort selon le besoin.
+- les charges de travail sont planifiées sur les workers,
+- le master gère l’orchestration et le contrôle du cluster,
+- les services sont exposés localement ou via NodePort selon le besoin.
 
 ```mermaid
 flowchart TD
     Dev[Développeur] --> Git[GitHub / GitLab]
     Git --> CI[Pipeline CI/CD]
-    CI --> Build[Build Docker Images]
-    Build --> Registry[Registry Docker Hub]
-    Registry --> Argo[Argo CD]
+    CI --> Build[Build Docker]
+    Build --> Reg[Registry Docker Hub]
+    Reg --> Argo[Argo CD]
     Argo --> Master[Master Node]
     Master --> W1[Worker 1]
     Master --> W2[Worker 2]
-    W1 --> App1[Frontend / Backend Pods]
-    W2 --> App2[Frontend / Backend Pods]
+    W1 --> FE[Frontend Pods]
+    W2 --> BE[Backend Pods]
 ```
 
-## Flux dynamique de déploiement
+### Flux de déploiement dynamique
 
 ```mermaid
 sequenceDiagram
@@ -56,39 +65,39 @@ sequenceDiagram
     participant A as Argo CD
     participant K as Kubernetes Cluster
 
-    D->>G: Push code
-    G->>C: Trigger pipeline
-    C->>C: Build backend/frontend
-    C->>R: Push image tagged version
-    A->>G: Sync manifests / GitOps state
-    A->>K: Apply desired state
-    K->>K: Deploy pods on worker1 / worker2
+    D->>G: Push du code
+    G->>C: Déclenchement du pipeline
+    C->>C: Build Maven + tests
+    C->>R: Push des images backend/frontend
+    A->>G: Lecture de l’état Git
+    A->>K: Application du manifest désiré
+    K->>K: Planification des pods sur worker1/worker2
 ```
 
-## Stack technique
+### Stack technique
 
 - Java 21
-- Spring Boot
+- Spring Boot 3
 - Maven
 - HTML / JavaScript
 - nginx
 - Docker
 - Kubernetes
 - kubectl
-- GitHub Actions ou Jenkins
+- GitHub Actions / Jenkins
 - Argo CD
-- Docker Hub ou autre registry
+- Docker Hub ou GHCR
 
-## Fonctionnalités
+### Fonctionnalités
 
-- API REST pour la gestion d’une liste de tâches,
-- frontend dynamique en JavaScript,
+- API REST pour gérer une liste de tâches,
+- frontend interactif en JavaScript,
 - déploiement multi-pods sur Kubernetes,
-- orchestration avec master + worker1 + worker2,
-- workflow GitOps via Argo CD,
-- intégration CI/CD pour build et release automatisés.
+- orchestration avec `master` + `worker1` + `worker2`,
+- travail GitOps avec Argo CD,
+- automatisation CI/CD pour build et release.
 
-## Structure du dépôt
+### Structure du dépôt
 
 ```text
 k8s-demo-app/
@@ -109,194 +118,251 @@ k8s-demo-app/
 │   ├── backend.yaml
 │   ├── frontend.yaml
 │   └── namespace.yaml
+├── .github/
+│   └── workflows/
+│       └── ci-cd.yml
+├── .gitignore
 ├── deploy.sh
 ├── README.md
-├── .gitignore
 └── LICENSE
 ```
 
-## CI/CD workflow
+### Workflow CI/CD
 
-### 1. Déclenchement
+#### Déclenchement
 
-Le pipeline démarre automatiquement lors d’un push sur la branche cible, par exemple :
+Le pipeline démarre automatiquement lors d’un push sur les branches principales, par exemple :
 
-- `main` pour production,
-- `dev` pour validation,
-- `feature/*` pour développement.
+- `main` pour la production,
+- `dev` pour le développement et la validation,
+- `feature/*` pour les fonctionnalités isolées.
 
-### 2. Étapes typiques
+#### Étapes classiques
 
-1. Récupération du code source,
-2. build backend Java avec Maven,
-3. build frontend statique ou Docker image,
-4. exécution de tests,
-5. construction des images Docker,
-6. push sur le registry,
-7. mise à jour des manifestes si nécessaire,
-8. synchronisation automatique par Argo CD.
+1. récupération du code source,
+2. build backend avec Maven,
+3. exécution des tests,
+4. build des images Docker,
+5. publication dans le registry,
+6. mise à jour des manifests si nécessaire,
+7. synchronisation par Argo CD,
+8. vérification du rollout Kubernetes.
 
-### Exemples de jobs
+### Argo CD et GitOps
 
-```yaml
-steps:
-  - checkout
-  - setup-java
-  - mvn test
-  - docker build -t repo/backend:latest ./backend
-  - docker push repo/backend:latest
-  - docker build -t repo/frontend:latest ./frontend
-  - docker push repo/frontend:latest
-```
+Argo CD permet de déployer selon une logique GitOps, où Git est la source de vérité.
 
-## Argo CD
+- les manifests Kubernetes sont versionnés dans Git,
+- Argo CD observe le dépôt,
+- il applique automatiquement l’état souhaité sur le cluster,
+- le cluster converge vers l’état décrit dans Git.
 
-Argo CD permet un déploiement GitOps basé sur un dépôt Git comme source de vérité.
+Un exemple de manifest `Application` Argo CD est disponible dans [k8s/argocd-application.yaml](k8s/argocd-application.yaml). Il pointe vers le dossier `k8s/` du dépôt, applique l’état souhaité dans le namespace `demo-app`, et restaure automatiquement les changements via `selfHeal`.
 
-### Principe
-
-- le code source et les manifests Kubernetes sont dans Git,
-- Argo CD surveille le dépôt,
-- dès qu’un changement est détecté, il applique automatiquement la configuration sur le cluster,
-- les pods sont recréés ou mis à jour selon l’état souhaité.
-
-### Cas d’usage ici
-
-- le dépôt Git contient les manifests Kubernetes,
-- Argo CD observe le cluster,
-- les images sont versionnées,
-- les services backend/frontend sont synchronisés en continu.
-
-## Architecture applicative
-
-```text
-Client -> NGINX Frontend -> Backend API -> In-memory tasks
-                             |
-                             +-> Kubernetes Service
-```
-
-## Prérequis
-
-Avant de déployer, vérifie que tu as :
-
-- Docker Desktop installé,
-- un registre d’images (Docker Hub, GHCR, ACR, etc.),
-- un cluster Kubernetes fonctionnel,
-- un kubeconfig valide,
-- Argo CD installé et configuré,
-- un dépôt Git accessible par le pipeline.
-
-## Déploiement sur le cluster
-
-### 1. Créer le namespace
+### Déploiement Kubernetes
 
 ```powershell
 kubectl apply -f k8s/namespace.yaml
-```
-
-### 2. Déployer le backend
-
-```powershell
 kubectl apply -f k8s/backend.yaml
-```
-
-### 3. Déployer le frontend
-
-```powershell
 kubectl apply -f k8s/frontend.yaml
+kubectl apply -f k8s/argocd-application.yaml
 ```
 
-### 4. Vérifier les ressources
+### Vérification
 
 ```powershell
 kubectl -n demo-app get pods,svc
-```
-
-## Vérification du cluster fonctionnel
-
-Pour un environnement avec master + worker1 + worker2 :
-
-```powershell
 kubectl get nodes
 kubectl get pods -A
-kubectl describe node master
-kubectl describe node worker1
-kubectl describe node worker2
 ```
 
-Les pods doivent être planifiés sur les workers, tandis que le master gère le contrôle du cluster.
+### Accès à l’application
 
-## Access to the application
-
-Le frontend est exposé via `NodePort` sur le port `30080` :
+Le frontend est exposé via NodePort sur le port `30080` :
 
 ```text
 http://<IP_PUBLIC_DU_NOEUD>:30080
 ```
 
-## API backend
+### API backend
 
 | Méthode | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/hello` | Santé du service |
+| `GET` | `/api/hello` | Message de santé du pod |
 | `GET` | `/api/tasks` | Liste des tâches |
 | `POST` | `/api/tasks` | Ajoute une tâche |
-| `PUT` | `/api/tasks/{id}/toggle` | Change l’état de la tâche |
+| `PUT` | `/api/tasks/{id}/toggle` | Change l’état d’une tâche |
 | `DELETE` | `/api/tasks/{id}` | Supprime une tâche |
 
-## Exemple de pipeline CI/CD
+### Bonnes pratiques DevOps
 
-```yaml
-name: ci-cd
+- séparer les branches `dev` et `main`,
+- utiliser des tags d’images explicites,
+- sécuriser les secrets Kubernetes,
+- surveiller les ressources et les pods,
+- faire confiance à Argo CD pour la continuité GitOps.
 
-on:
-  push:
-    branches: [main, dev]
+---
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
-      - run: mvn -f backend/pom.xml test
-      - run: docker build -t myregistry/k8s-demo-backend:latest ./backend
-      - run: docker build -t myregistry/k8s-demo-frontend:latest ./frontend
-      - run: docker push myregistry/k8s-demo-backend:latest
-      - run: docker push myregistry/k8s-demo-frontend:latest
+## English
+
+### Project objective
+
+This project illustrates the complete lifecycle of a modern application in a real Kubernetes environment:
+
+- source code development,
+- automated validation through CI,
+- Docker image building,
+- publishing to a container registry,
+- deployment on Kubernetes,
+- dynamic synchronization with Argo CD,
+- cluster management using `master`, `worker1`, and `worker2`.
+
+### Kubernetes cluster architecture
+
+The functional environment is structured as follows:
+
+- 1 control plane node: `master`
+- 2 worker nodes: `worker1` and `worker2`
+- workloads are scheduled on the workers,
+- the master manages orchestration and cluster control,
+- services are exposed internally or through NodePort depending on the need.
+
+```mermaid
+flowchart TD
+    Dev[Developer] --> Git[GitHub / GitLab]
+    Git --> CI[CI/CD Pipeline]
+    CI --> Build[Build Docker Images]
+    Build --> Reg[Registry]
+    Reg --> Argo[Argo CD]
+    Argo --> Master[Master Node]
+    Master --> W1[Worker 1]
+    Master --> W2[Worker 2]
+    W1 --> FE[Frontend Pods]
+    W2 --> BE[Backend Pods]
 ```
 
-## Déploiement GitOps avec Argo CD
+### Dynamic deployment flow
 
-- le repository Git est la source unique de vérité,
-- Argo CD applique les manifests Kubernetes,
-- le cluster se synchronise automatiquement,
-- les mises à jour passent par Git et non par action manuelle directe sur le cluster.
+```mermaid
+sequenceDiagram
+    participant D as Developer
+    participant G as GitHub
+    participant C as CI/CD
+    participant R as Registry
+    participant A as Argo CD
+    participant K as Kubernetes Cluster
 
-## Bonnes pratiques DevOps
+    D->>G: Push code
+    G->>C: Trigger pipeline
+    C->>C: Maven build + tests
+    C->>R: Push backend/frontend images
+    A->>G: Sync Git state
+    A->>K: Apply desired manifests
+    K->>K: Schedule pods on workers
+```
 
-- versionner les images avec tags explicites,
-- séparer `dev` et `main`,
-- utiliser des pipelines distincts pour validation et production,
-- toujours surveiller les ressources Kubernetes,
-- utiliser Argo CD pour une approche GitOps propre,
-- gérer les secrets via Kubernetes Secrets ou vault externe.
+### Tech stack
 
-## Résumé
+- Java 21
+- Spring Boot 3
+- Maven
+- HTML / JavaScript
+- nginx
+- Docker
+- Kubernetes
+- kubectl
+- GitHub Actions / Jenkins
+- Argo CD
+- Docker Hub or GHCR
 
-Ce projet représente une démonstration complète de l’écosystème DevOps moderne :
+### Functional scope
 
-- code source,
-- CI/CD,
-- conteneurisation,
-- Kubernetes,
-- Argo CD,
-- cluster maître + workers,
-- automatisation et scalabilité.
+- REST API for task management,
+- interactive frontend in JavaScript,
+- multi-pod deployment on Kubernetes,
+- orchestration across `master` + `worker1` + `worker2`,
+- GitOps deployment with Argo CD,
+- CI/CD automation for build and release processes.
 
-## Auteur
+### CI/CD workflow
+
+#### Trigger
+
+The pipeline runs automatically on pushes to the main branches, for example:
+
+- `main` for production,
+- `dev` for development and validation,
+- `feature/*` for isolated feature work.
+
+#### Typical stages
+
+1. source checkout,
+2. Java backend build with Maven,
+3. tests execution,
+4. Docker image creation,
+5. image push to registry,
+6. manifest update if needed,
+7. Argo CD synchronization,
+8. Kubernetes rollout verification.
+
+### Argo CD and GitOps
+
+Argo CD is used to reconcile the cluster with the desired state declared in Git.
+
+- Git is the source of truth,
+- manifests are versioned and auditable,
+- Argo CD continuously watches the repository,
+- deployment changes are applied automatically,
+- the cluster converges toward the desired configuration.
+
+A ready-to-use Argo CD `Application` manifest is available in [k8s/argocd-application.yaml](k8s/argocd-application.yaml). It watches the `k8s/` folder, deploys into the `demo-app` namespace, and automatically reconciles drift through `selfHeal`.
+
+### Kubernetes deployment
+
+```powershell
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/backend.yaml
+kubectl apply -f k8s/frontend.yaml
+kubectl apply -f k8s/argocd-application.yaml
+```
+
+### Verification
+
+```powershell
+kubectl -n demo-app get pods,svc
+kubectl get nodes
+kubectl get pods -A
+```
+
+### Application access
+
+The frontend is exposed through NodePort on port `30080`:
+
+```text
+http://<PUBLIC_NODE_IP>:30080
+```
+
+### API reference
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/hello` | Health message from the pod |
+| `GET` | `/api/tasks` | Lists all tasks |
+| `POST` | `/api/tasks` | Creates a task |
+| `PUT` | `/api/tasks/{id}/toggle` | Toggles task status |
+| `DELETE` | `/api/tasks/{id}` | Deletes a task |
+
+### Best practices
+
+- isolate `dev` and `main` branches,
+- use explicit image tags,
+- secure Kubernetes secrets,
+- monitor pod health and cluster resources,
+- rely on Argo CD for a clean GitOps workflow.
+
+---
+
+## Author
 
 Najeh TOUMI
