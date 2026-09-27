@@ -1,50 +1,54 @@
-﻿# Démo K8s : To-Do List
+﻿# Kubernetes To-Do App
 
-![Java](https://img.shields.io/badge/Java-21-orange)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen)
-![Docker](https://img.shields.io/badge/Docker-Ready-blue)
-![Kubernetes](https://img.shields.io/badge/Kubernetes-Deployable-326ce5)
+![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-Deployable-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-Application de démonstration pour illustrer le déploiement d’une architecture web complète sur Kubernetes, avec un backend Java Spring Boot et un frontend JavaScript servi par nginx.
+A production-style demo application designed to showcase containerization and Kubernetes deployment using a Java backend and a static frontend.
 
-## Vue d’ensemble
+## Overview
 
-Cette application contient :
+This project demonstrates how a small web application can be packaged with Docker and deployed in a Kubernetes cluster. It includes:
 
-- un backend REST pour gérer une liste de tâches,
-- un frontend statique qui consomme l’API,
-- des manifests Kubernetes pour le déploiement,
-- une configuration Docker pour la conteneurisation.
+- a Java Spring Boot backend exposing REST APIs,
+- a frontend built with HTML and JavaScript,
+- nginx as the frontend web server,
+- Kubernetes manifests to deploy both services,
+- an Azure-based deployment pattern using a kubeconfig.
+
+## Architecture
 
 ```mermaid
 flowchart LR
-    User --> Frontend
-    Frontend -->|HTTP /api| Backend
-    Backend -->|Stockage mémoire| Tasks
+    User[Client Browser] --> FE[Frontend - nginx]
+    FE -->|HTTP /api| BE[Backend - Spring Boot]
+    BE --> TASKS[In-memory task store]
 ```
 
-## Stack technique
+## Tech Stack
 
 - Java 21
 - Spring Boot
 - Maven
-- HTML + JavaScript
+- JavaScript / HTML
 - nginx
 - Docker
 - Kubernetes
 - kubectl
 
-## Fonctionnalités
+## Features
 
-- ajout d’une tâche,
-- suppression d’une tâche,
-- validation d’une tâche,
-- lecture de la liste des tâches,
-- endpoint de santé `/api/hello`,
-- déploiement multi-pods sur Kubernetes,
-- exposition via `NodePort`.
+- Create tasks
+- Delete tasks
+- Mark tasks as done
+- List all tasks
+- Health endpoint `/api/hello`
+- Multi-pod Kubernetes deployment
+- NodePort access for external traffic
 
-## Structure du projet
+## Project Structure
 
 ```text
 k8s-demo-app/
@@ -67,53 +71,50 @@ k8s-demo-app/
 │   └── namespace.yaml
 ├── deploy.sh
 ├── README.md
-└── .gitignore
+├── .gitignore
+└── LICENSE
 ```
 
-## Prérequis
+## Prerequisites
 
-Avant de lancer le projet, vérifie que tu as :
+Before running the project, make sure you have:
 
-- Docker Desktop installé et démarré,
-- un compte sur un registre d’images tel que Docker Hub,
-- un cluster Kubernetes accessible via `kubectl`,
-- un fichier `kubeconfig` valide.
+- Docker Desktop installed and running,
+- a Docker Hub account or another container registry,
+- a Kubernetes cluster and valid `kubectl` access,
+- a working `kubeconfig` file.
 
-## Démarrage rapide
+## Quick Start
 
-### 1. Backend local
-
-Depuis la racine du projet :
+### 1. Run the backend locally
 
 ```powershell
 cd backend
 ./mvnw spring-boot:run
 ```
 
-L’API est alors accessible sur :
+The API will be available at:
 
 ```text
 http://localhost:8080
 ```
 
-### 2. Frontend local
-
-Ouvre le projet directement dans le navigateur ou démarre un mini serveur local :
+### 2. Run the frontend locally
 
 ```powershell
 cd frontend
 python -m http.server 8000
 ```
 
-Puis ouvre :
+Open:
 
 ```text
 http://localhost:8000
 ```
 
-## Build et publication des images Docker
+## Docker Build and Push
 
-Depuis la racine du projet, remplace `TON_USER_DOCKERHUB` par ton identifiant Docker Hub :
+Replace `TON_USER_DOCKERHUB` with your Docker Hub username:
 
 ```powershell
 docker login
@@ -125,19 +126,17 @@ docker build -t TON_USER_DOCKERHUB/k8s-demo-frontend:1.0 ./frontend
 docker push TON_USER_DOCKERHUB/k8s-demo-frontend:1.0
 ```
 
-## Configuration des manifestes Kubernetes
+## Kubernetes Deployment
 
-Ouvre les fichiers dans `k8s/` et remplace l’image de référence par ton propre registre.
+Update the image references in the manifests under `k8s/`.
 
-Exemple dans `k8s/backend.yaml` :
+Example:
 
 ```yaml
 image: TON_USER_DOCKERHUB/k8s-demo-backend:1.0
 ```
 
-## Déploiement sur le cluster
-
-Depuis la racine du projet :
+Then apply the manifests:
 
 ```powershell
 kubectl --kubeconfig=..\terraform-k8s-azure-v2\kubeconfig apply -f k8s/namespace.yaml
@@ -145,84 +144,76 @@ kubectl --kubeconfig=..\terraform-k8s-azure-v2\kubeconfig apply -f k8s/backend.y
 kubectl --kubeconfig=..\terraform-k8s-azure-v2\kubeconfig apply -f k8s/frontend.yaml
 ```
 
-> Adapte le chemin vers ton fichier `kubeconfig` selon ton environnement.
+> Adjust the kubeconfig path to match your environment.
 
-## Vérification du déploiement
+## Verify Deployment
 
 ```powershell
 kubectl --kubeconfig=..\terraform-k8s-azure-v2\kubeconfig -n demo-app get pods,svc
 ```
 
-Vérifie que les pods `backend-*` et `frontend-*` sont bien en `Running`.
+You should see the `backend-*` and `frontend-*` pods in `Running` state.
 
-## Accès à l’application
+## Access the Application
 
-Le frontend est exposé via un service `NodePort` sur le port `30080`.
+The frontend is exposed on NodePort `30080`.
 
-Dans le navigateur, ouvre :
+Open in your browser:
 
 ```text
-http://<IP_PUBLIQUE_D_UN_NOEUD>:30080
+http://<PUBLIC_NODE_IP>:30080
 ```
 
-## API backend
+## API Endpoints
 
-Le backend expose les endpoints suivants :
-
-| Méthode | Endpoint | Description |
+| Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/hello` | Renvoie un message de santé du pod |
-| `GET` | `/api/tasks` | Récupère la liste des tâches |
-| `POST` | `/api/tasks` | Ajoute une tâche |
-| `PUT` | `/api/tasks/{id}/toggle` | Change l’état d’une tâche |
-| `DELETE` | `/api/tasks/{id}` | Supprime une tâche |
+| `GET` | `/api/hello` | Returns a health message |
+| `GET` | `/api/tasks` | Lists tasks |
+| `POST` | `/api/tasks` | Adds a task |
+| `PUT` | `/api/tasks/{id}/toggle` | Toggles task status |
+| `DELETE` | `/api/tasks/{id}` | Deletes a task |
 
-## Mise à jour de l’application
+## Rolling Updates
 
-Après modification du code :
-
-1. rebuild l’image concernée,
-2. push la nouvelle version,
-3. redéployer la ressource Kubernetes.
-
-Exemple :
+After modifying the app, rebuild and push the image, then restart the deployment.
 
 ```powershell
 kubectl --kubeconfig=..\terraform-k8s-azure-v2\kubeconfig rollout restart deployment/backend -n demo-app
 kubectl --kubeconfig=..\terraform-k8s-azure-v2\kubeconfig rollout restart deployment/frontend -n demo-app
 ```
 
-## Dépannage
+## Troubleshooting
 
-### Le frontend ne contacte pas le backend
+### Frontend cannot reach backend
 
-Vérifie que :
+Check:
 
-- le service `backend-svc` existe,
-- le port du backend est bien `8080`,
-- les pods sont bien démarrés,
-- le proxy nginx pointe vers le bon service interne.
+- the service `backend-svc` exists,
+- backend port `8080` is correct,
+- pods are healthy,
+- nginx proxy points to the correct internal service.
 
-### Les images Docker ne se construisent pas
+### Docker build fails
 
-Contrôle que :
+Verify:
 
-- Docker Desktop est bien lancé,
-- les fichiers `Dockerfile` existent,
-- le contexte de build est correct.
+- Docker Desktop is running,
+- Dockerfiles are present,
+- build context is correct.
 
-### Le cluster ne démarre pas les workloads
+### Kubernetes deployment issues
 
-Vérifie :
+Verify:
 
-- la validité du `kubeconfig`,
-- la présence du namespace `demo-app`,
-- les événements Kubernetes avec `kubectl describe`.
+- `kubeconfig` is valid,
+- namespace `demo-app` exists,
+- pods and events are healthy with `kubectl describe`.
 
-## Licence
+## Project Status
 
-Projet de démonstration destiné à des fins pédagogiques et de formation.
+This project is intended for learning, infrastructure demos, and Kubernetes hands-on practice.
 
-## Auteur
+## Author
 
 Najeh TOUMI
