@@ -1,0 +1,49 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      BACKEND_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/k8s-demo-backend:latest
+      FRONTEND_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/k8s-demo-frontend:latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Run backend tests
+        run: mvn -f backend/pom.xml test
+
+      - name: Log in to Docker Hub
+        run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+      - name: Build backend image
+        run: docker build -t $BACKEND_IMAGE ./backend
+
+      - name: Build frontend image
+        run: docker build -t $FRONTEND_IMAGE ./frontend
+
+      - name: Push backend image
+        run: docker push $BACKEND_IMAGE
+
+      - name: Push frontend image
+        run: docker push $FRONTEND_IMAGE
