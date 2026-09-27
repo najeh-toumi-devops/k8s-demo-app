@@ -1,54 +1,57 @@
-﻿# Kubernetes To-Do App
+﻿# Kubernetes To-Do Application
 
 ![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![Kubernetes](https://img.shields.io/badge/Kubernetes-Deployable-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-Deployment-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
+![Azure](https://img.shields.io/badge/Azure-Cluster-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white)
 
-A production-style demo application designed to showcase containerization and Kubernetes deployment using a Java backend and a static frontend.
+A portfolio-grade DevOps project demonstrating how to build, containerize, and deploy a full web application on Kubernetes.
 
-## Overview
+## About This Project
 
-This project demonstrates how a small web application can be packaged with Docker and deployed in a Kubernetes cluster. It includes:
+This repository showcases a practical Kubernetes deployment workflow using a simple to-do application composed of:
 
-- a Java Spring Boot backend exposing REST APIs,
-- a frontend built with HTML and JavaScript,
-- nginx as the frontend web server,
-- Kubernetes manifests to deploy both services,
-- an Azure-based deployment pattern using a kubeconfig.
+- a Java Spring Boot backend,
+- a static frontend served by nginx,
+- Docker images for both services,
+- Kubernetes manifests for deployment and service exposure,
+- an Azure-compatible cluster configuration.
+
+The project is designed to highlight clean containerization, API communication, and orchestration patterns used in real-world cloud environments.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    User[Client Browser] --> FE[Frontend - nginx]
-    FE -->|HTTP /api| BE[Backend - Spring Boot]
-    BE --> TASKS[In-memory task store]
+    Browser[User Browser] --> FE[Frontend: nginx]
+    FE -->|HTTP /api| API[Backend: Spring Boot]
+    API --> STORE[In-memory Task Store]
 ```
 
-## Tech Stack
+## Stack
 
 - Java 21
-- Spring Boot
+- Spring Boot 3
 - Maven
-- JavaScript / HTML
+- HTML / JavaScript
 - nginx
 - Docker
 - Kubernetes
 - kubectl
+- Azure Kubernetes deployment pattern
 
-## Features
+## Core Features
 
-- Create tasks
-- Delete tasks
-- Mark tasks as done
-- List all tasks
+- Add a task
+- Delete a task
+- Toggle task completion status
+- View all tasks
 - Health endpoint `/api/hello`
-- Multi-pod Kubernetes deployment
-- NodePort access for external traffic
+- Deployable multi-pod configuration
+- NodePort service exposure
 
-## Project Structure
+## Repository Structure
 
 ```text
 k8s-demo-app/
@@ -77,44 +80,38 @@ k8s-demo-app/
 
 ## Prerequisites
 
-Before running the project, make sure you have:
+Make sure the following are available on your machine:
 
-- Docker Desktop installed and running,
-- a Docker Hub account or another container registry,
-- a Kubernetes cluster and valid `kubectl` access,
-- a working `kubeconfig` file.
+- Docker Desktop
+- A Docker Hub account or another registry
+- A Kubernetes cluster reachable with `kubectl`
+- A valid `kubeconfig` file
 
-## Quick Start
+## Local Development
 
-### 1. Run the backend locally
+### 1. Start the backend
 
 ```powershell
 cd backend
 ./mvnw spring-boot:run
 ```
 
-The API will be available at:
-
-```text
-http://localhost:8080
-```
-
-### 2. Run the frontend locally
+### 2. Start the frontend
 
 ```powershell
 cd frontend
 python -m http.server 8000
 ```
 
-Open:
+Then open:
 
 ```text
 http://localhost:8000
 ```
 
-## Docker Build and Push
+## Container Build
 
-Replace `TON_USER_DOCKERHUB` with your Docker Hub username:
+Update the image tag with your Docker Hub username:
 
 ```powershell
 docker login
@@ -128,7 +125,7 @@ docker push TON_USER_DOCKERHUB/k8s-demo-frontend:1.0
 
 ## Kubernetes Deployment
 
-Update the image references in the manifests under `k8s/`.
+Update the manifests under `k8s/` to use your registry and image names.
 
 Example:
 
@@ -136,7 +133,7 @@ Example:
 image: TON_USER_DOCKERHUB/k8s-demo-backend:1.0
 ```
 
-Then apply the manifests:
+Apply the resources:
 
 ```powershell
 kubectl --kubeconfig=..\terraform-k8s-azure-v2\kubeconfig apply -f k8s/namespace.yaml
@@ -144,39 +141,43 @@ kubectl --kubeconfig=..\terraform-k8s-azure-v2\kubeconfig apply -f k8s/backend.y
 kubectl --kubeconfig=..\terraform-k8s-azure-v2\kubeconfig apply -f k8s/frontend.yaml
 ```
 
-> Adjust the kubeconfig path to match your environment.
-
-## Verify Deployment
+## Verification
 
 ```powershell
 kubectl --kubeconfig=..\terraform-k8s-azure-v2\kubeconfig -n demo-app get pods,svc
 ```
 
-You should see the `backend-*` and `frontend-*` pods in `Running` state.
+Check that both `backend-*` and `frontend-*` pods are in `Running` state.
 
 ## Access the Application
 
-The frontend is exposed on NodePort `30080`.
+The frontend is exposed with a `NodePort` on port `30080`.
 
-Open in your browser:
+Open the following URL in a browser:
 
 ```text
 http://<PUBLIC_NODE_IP>:30080
 ```
 
-## API Endpoints
+## API Reference
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/hello` | Returns a health message |
-| `GET` | `/api/tasks` | Lists tasks |
-| `POST` | `/api/tasks` | Adds a task |
-| `PUT` | `/api/tasks/{id}/toggle` | Toggles task status |
-| `DELETE` | `/api/tasks/{id}` | Deletes a task |
+| `GET` | `/api/hello` | Returns a pod health message |
+| `GET` | `/api/tasks` | Lists all tasks |
+| `POST` | `/api/tasks` | Creates a task |
+| `PUT` | `/api/tasks/{id}/toggle` | Toggles task state |
+| `DELETE` | `/api/tasks/{id}` | Removes a task |
 
-## Rolling Updates
+## Update Workflow
 
-After modifying the app, rebuild and push the image, then restart the deployment.
+After changing the code:
+
+1. rebuild the affected image,
+2. push the new image,
+3. rollout the Kubernetes deployment.
+
+Example:
 
 ```powershell
 kubectl --kubeconfig=..\terraform-k8s-azure-v2\kubeconfig rollout restart deployment/backend -n demo-app
@@ -189,30 +190,30 @@ kubectl --kubeconfig=..\terraform-k8s-azure-v2\kubeconfig rollout restart deploy
 
 Check:
 
-- the service `backend-svc` exists,
-- backend port `8080` is correct,
+- `backend-svc` exists,
+- backend port is `8080`,
 - pods are healthy,
-- nginx proxy points to the correct internal service.
+- nginx is configured to route API requests correctly.
 
 ### Docker build fails
 
 Verify:
 
 - Docker Desktop is running,
-- Dockerfiles are present,
-- build context is correct.
+- the Dockerfiles are present,
+- the build context is correct.
 
-### Kubernetes deployment issues
+### Kubernetes fails to schedule workloads
 
 Verify:
 
-- `kubeconfig` is valid,
-- namespace `demo-app` exists,
-- pods and events are healthy with `kubectl describe`.
+- the `kubeconfig` file is valid,
+- the `demo-app` namespace exists,
+- the cluster resources are healthy.
 
 ## Project Status
 
-This project is intended for learning, infrastructure demos, and Kubernetes hands-on practice.
+This project is intended for learning, portfolio demonstration, and Kubernetes practice in a real-world environment.
 
 ## Author
 
