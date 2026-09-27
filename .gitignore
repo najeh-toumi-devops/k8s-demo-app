@@ -1,0 +1,35 @@
+# Java / Maven
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Docker / local env
+.env
+.env.*
+
+# Node / frontend
+node_modules/
+dist/
+build/
+
+# Kubernetes secrets or local config
+kubeconfig
+*.kubeconfig
